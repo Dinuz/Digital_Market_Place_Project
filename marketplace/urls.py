@@ -18,4 +18,8 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+
+    # Product Views URL
+    url(r'^detail/$', 'products.views.detail_view', name='detail_view'),
+    url(r'^list/$', 'products.views.list_view', name='list_view'),
 ]
