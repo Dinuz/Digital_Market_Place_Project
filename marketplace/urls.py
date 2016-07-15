@@ -16,10 +16,15 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
+from products import views
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     # Product Views URL
-    url(r'^detail/$', 'products.views.detail_view', name='detail_view'),
-    url(r'^list/$', 'products.views.list_view', name='list_view'),
+    url(r'^detail/(?P<object_id>\d+)$', views.detail_view, name='detail_view'),
+    url(r'^detail/(?P<slug>[\w-]+)$', views.detail_slug_view, name='detail_view'),
+    url(r'^detail/(?P<object_id>\d+)/edit/$', views.update_view, name='update_view'),
+    url(r'^list/$', views.list_view, name='list_view'),
+    url(r'^create/$', views.create_view, name='create_view'),
 ]
