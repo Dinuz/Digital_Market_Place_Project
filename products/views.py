@@ -1,9 +1,23 @@
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
+from django.core.urlresolvers import reverse
+
+
+from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, UpdateView
+
 
 # Create your views here.
 
+from marketplace.mixins import (
+            MultiSlugMixin,
+            SubmitBtnMixin,
+            LoginRequiredMixin,
+            )
+
 from .models import Product
+from .mixins import ProducManagerMixin
 from .forms import ProductAddForm, ProductModelForm
 
 
@@ -122,3 +136,100 @@ def list_view(request):
         'queryset': queryset
     }
     return render(request, template, context)
+
+
+
+
+
+class ProductListView(ListView):
+
+    model = Product
+    #template_name = 'list_view.html'
+
+    #def get_context_data(self, **kwargs):
+    #    context = super(ProductListView, self).get_context_data(**kwargs)
+    #    #context['now'] = timezone.now()
+    #    print(context)
+    #    context['queryset'] = self.get_queryset() #Product.objects.all()
+    #    return context
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(ProductListView, self).get_queryset(**kwargs)
+        #qs = qs.filter(title__icontains='sammmy')
+        return qs
+
+
+class ProductDetailView(MultiSlugMixin, DetailView):
+
+    model = Product
+
+    #def get_context_data(self, **kwargs):
+    #    context = super(ProductDetailView, self).get_context_data(**kwargs)
+    #    #context['now'] = timezone.now()
+    #    #print(context)
+    #    return context
+
+    #def get_object(self, *args, **kwargs):
+    #    slug = self.kwargs.get('slug')
+    #    #print(slug)
+    #    if slug is not None:
+    #        try:
+    #            obj = get_object_or_404(self.model, slug=slug)
+    #        except self.model.MultipleObjectsReturned:
+    #            obj = self.model.objects.filter(slug=slug).order_by('-title').first()
+    #    else:
+    #        obj = super(ProductDetailView, self).get_object(*args, **kwargs)
+    #    # qs = qs.filter(title__icontains='sammmy')
+    #    return obj
+
+
+class ProductCreateView(LoginRequiredMixin, SubmitBtnMixin, CreateView):
+    model = Product
+    form_class = ProductModelForm
+    template_name = 'form.html'
+    #fields = ['name']
+    #success_url = '/products/create/'
+    submit_btn = 'Add Product'
+
+    def form_valid(self, form):
+        user = self.request.user
+        form.instance.user = user
+        valid_data = super(ProductCreateView, self).form_valid(form)
+        form.instance.managers.add(user)
+        return valid_data
+
+    #def get_success_url(self):
+    #   return reverse('product_list_view') #'/users/%s/' %(self.request.user)
+#
+    #def get_context_data(self, **kwargs):
+    #    context = super(ProductCreateView, self).get_context_data(**kwargs)
+    #    context['submit_btn'] = 'Add Product'
+    #    #context['now'] = timezone.now()
+    #    #print(context)
+    #    return context
+
+
+class ProductUpdateView(ProducManagerMixin, SubmitBtnMixin, MultiSlugMixin, UpdateView):
+#class ProductUpdateView(ProducManagerMixin, LoginRequiredMixin, SubmitBtnMixin, MultiSlugMixin, UpdateView):
+    model = Product
+    form_class = ProductModelForm
+    template_name = 'form.html'
+    #fields = ['name']
+    #success_url = '/products/'
+    submit_btn = 'Update Product'
+
+    #def get_object(self, *args, **kwargs):
+    #    user = self.request.user
+    #    obj = super(ProductUpdateView, self).get_object(*args, **kwargs)
+    #    if obj.user == user or user in obj.managers.all():
+    #        return obj
+    #    else:
+    #        raise Http404
+    #    #return obj
+
+    #def get_context_data(self, **kwargs):
+    #    context = super(ProductUpdateView, self).get_context_data(**kwargs)
+    #    context['submit_btn'] = 'Update Product'
+    #    #context['now'] = timezone.now()
+    #    #print(context)
+    #    return context
